@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -48,6 +49,56 @@ public class Bottle : MonoBehaviour
         GameObject[] _physicalStartLiquids = CreateFirstLiquids(_startLiquids);
         AddLiquid(_physicalStartLiquids, _physicalStartLiquids.Length);
         bottleManager = _bottleManager;
+    }
+
+    public void SetBottomOfBottle( GameObject bottomOfBottle )
+    {
+        this.bottomOfBottle = bottomOfBottle;
+    }
+
+    public GameObject GetBottomOfBottle()
+    {
+        return bottomOfBottle;
+    }
+
+    public void SetTopOfBottle( GameObject topOfBottle )
+    {
+        this.topOfBottle = topOfBottle;
+    }
+
+    public GameObject GetTopOfBottle()
+    {
+        return topOfBottle;
+    }
+
+    public void SetBottleCapper( GameObject bottleCapper )
+    {
+        this.bottleCapper = bottleCapper;
+    }
+
+    public GameObject GetBottleCapper()
+    {
+        return bottleCapper;
+    }
+
+    public void SetConfetti( ParticleSystem confetti )
+    {
+        this.confetti = confetti;
+    }
+
+    public ParticleSystem GetConfetti()
+    {
+        return confetti;
+    }
+
+    public void SetShaker( Animator shaker )
+    {
+        this.shaker = shaker;
+    }
+
+    public Animator GetShaker()
+    {
+        return shaker;
     }
 
     //private void Update()
@@ -192,32 +243,41 @@ public class Bottle : MonoBehaviour
     //    }
     //}
 
-    public void TransferLiquid(GameObject _other)
+    public Move TransferLiquid(GameObject _other)
+    {
+        return TransferLiquid(_other.GetComponent<Bottle>(), false, -1);
+    }
+
+    public Move TransferLiquid(Bottle _other, bool isUndo, int undoLiquidCount)
     {
         GameObject _liquidToTransfer = this.GetTopLiquid();
 
         //Checks if liquid transfer fails
 
-        if (_other.GetComponent<Bottle>().GetTopLiquid().transform.childCount != 0)
+        if (_other.GetTopLiquid().transform.childCount != 0)
         {
-            if (_liquidToTransfer.transform.childCount == 0 || _other.GetComponent<Bottle>().GetTopLiquid().transform.GetChild(0).GetComponent<Liquid>().GetColor() != _liquidToTransfer.transform.GetChild(0).GetComponent<Liquid>().GetColor())
+            if ( (! isUndo) && (_liquidToTransfer.transform.childCount == 0 || _other.GetTopLiquid().transform.GetChild(0).GetComponent<Liquid>().GetColor() != _liquidToTransfer.transform.GetChild(0).GetComponent<Liquid>().GetColor()))
             {
                 ShakeBottle();
-                return;
+                return null;
             }
         }
 
-
-        int _otherFree = _other.GetComponent<Bottle>().CheckCurrentEmpty();
+        int _otherFree = _other.CheckCurrentEmpty();
         if(_otherFree == 0)
         {
             ShakeBottle();
-            return;
+            return null;
         }
 
         //Debug.Log("Other Free = " + _otherFree);
 
         int _numToTransfer = this.CheckNumOfTop(_liquidToTransfer.transform.GetChild(0).GetComponent<Liquid>().GetColor());
+
+        if ( isUndo )
+        {
+            _numToTransfer = undoLiquidCount;
+        }
 
         //Debug.Log("NumToTransfer before = " + _numToTransfer);
 
@@ -238,7 +298,7 @@ public class Bottle : MonoBehaviour
             {
                 continue;
             }
-            else if (currentLiquids[i].GetComponentInChildren<Liquid>().GetColor() == _liquidToTransfer.transform.GetChild(0).GetComponent<Liquid>().GetColor())
+            else if (isUndo || (currentLiquids[i].GetComponentInChildren<Liquid>().GetColor() == _liquidToTransfer.transform.GetChild(0).GetComponent<Liquid>().GetColor()))
             {
                 _liquidsToTransfer[_numNabbed] = currentLiquids[i].transform.GetChild(0).gameObject;
                 _numNabbed++;
@@ -251,12 +311,29 @@ public class Bottle : MonoBehaviour
 
         //Debug.Log("Here comes the add liquid");
 
-        _other.GetComponent<Bottle>().AddLiquid(_liquidsToTransfer, _numToTransfer);
-        bottleManager.IncrementMoves();
+        _other.AddLiquid(_liquidsToTransfer, _numToTransfer);
+
+        if ( ! isUndo )
+        {
+            bottleManager.IncrementMoves();
+        }
+
         bottleManager.ClearHeldBottle();
         //this.RemoveLiquid(_numToTransfer);
 
         //bottleManager.SaveBottleStates();
+        return new Move( this, _other, _numToTransfer );
+    }
+
+    public void ResetCompleteBottle()
+    {
+        if ( bottleCompleted )
+        {
+            bottleCompleted = false;
+            bottleCapper.SetActive(false);
+
+            bottleManager.RemoveCompleteBottle();
+        }
     }
 
     private void CompleteBottle()
@@ -264,7 +341,11 @@ public class Bottle : MonoBehaviour
         bottleCompleted = true;
         bottleCapper.SetActive(true);
 
-        confetti.Play();
+        if ( confetti != null )
+	{
+            confetti.Play();
+	}
+
         bottleManager.CompleteBottle();
 
         //Debug.Log("Bottle Completed!!!");

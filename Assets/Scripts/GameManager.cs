@@ -18,6 +18,26 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private int DEBUGEMPTY;
 
+    public void SetBottlePrefab( GameObject bottlePrefab )
+    {
+        this.bottlePrefab = bottlePrefab;
+    }
+
+    public GameObject GetBottlePrefab()
+    {
+        return bottlePrefab;
+    }
+
+    public void SetLiquidPrefabs( GameObject[] liquidPrefabs )
+    {
+        this.liquidPrefabs = liquidPrefabs;
+    }
+
+    public GameObject[] GetLiquidPrefabs()
+    {
+        return liquidPrefabs;
+    }
+
     private void Awake()
     {
         //GameObject[] _objs = GameObject.FindGameObjectsWithTag("Game Manager");

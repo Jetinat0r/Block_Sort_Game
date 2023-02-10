@@ -6,6 +6,8 @@ using UnityEngine.UI;
 public class PlayerUI : MonoBehaviour
 {
     [SerializeField]
+    private GameObject undoButton;
+    [SerializeField]
     private GameObject restartButton;
     [SerializeField]
     private GameObject settingsButton;
@@ -31,8 +33,14 @@ public class PlayerUI : MonoBehaviour
         FindObjectOfType<BottleManager>().Restart();
     }
 
+    public void Undo()
+    {
+        FindObjectOfType<BottleManager>().Undo();
+    }
+
     public void OpenGameSettings()
     {
+        undoButton.SetActive(false);
         restartButton.SetActive(false);
         settingsButton.SetActive(false);
         numMovesText.SetActive(false);
@@ -42,6 +50,7 @@ public class PlayerUI : MonoBehaviour
 
     public void CloseGameSettings()
     {
+        undoButton.SetActive(true);
         restartButton.SetActive(true);
         settingsButton.SetActive(true);
         numMovesText.SetActive(true);
@@ -98,6 +107,7 @@ public class PlayerUI : MonoBehaviour
 
     public void OpenWinScreen(int _numMoves)
     {
+        undoButton.SetActive(false);
         restartButton.SetActive(false);
         settingsButton.SetActive(false);
         numMovesText.SetActive(false);
@@ -122,13 +132,9 @@ public class PlayerUI : MonoBehaviour
         FindObjectOfType<BottleManager>().ResetMoves();
 
         winScreen.SetActive(false);
+        undoButton.SetActive(true);
         restartButton.SetActive(true);
         settingsButton.SetActive(true);
         numMovesText.SetActive(true);
     }
-
-    //public void Undo()
-    //{
-    //    FindObjectOfType<BottleManager>().Undo();
-    //}
 }
