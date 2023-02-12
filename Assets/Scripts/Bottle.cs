@@ -26,7 +26,7 @@ public class Bottle : MonoBehaviour
     private float timeToShift = 0.2f;
     //Time for bottle to move
     [SerializeField]
-    private float timeToMove = 0.2f;
+    public float timeToMove = 0.2f;
     [SerializeField]
     private float distUp = 1f;
     private Vector3 initialPos;

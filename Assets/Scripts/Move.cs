@@ -1,44 +1,37 @@
+using System;
+
 public class Move
 {
-    private Bottle sourceBottle;
-    private Bottle destinationBottle;
-    private int    liquidCount;
+    public Bottle Source { get; private set; }
 
-    public Move( Bottle sourceBottle,
-                 Bottle destinationBottle,
-                 int liquidCount )
-    {
-        this.sourceBottle = sourceBottle;
-        this.destinationBottle = destinationBottle;
-        this.liquidCount = liquidCount;
-    }
+    public Bottle Destination { get; private set; }
 
-    public Bottle GetSourceBottle()
-    {
-        return sourceBottle;
-    }
+    public int LiquidCount { get; private set; }
 
-    public Bottle GetDestinationBottle()
+    public Move( Bottle source, Bottle destination, int liquidCount )
     {
-        return destinationBottle;
-    }
-
-    public int GetLiquidCount()
-    {
-        return liquidCount;
+        Source = source ?? throw new ArgumentNullException(nameof(source));
+        Destination = destination ?? throw new ArgumentNullException(nameof(destination));
+        LiquidCount = liquidCount;
     }
 
     public void Undo()
     {
-      destinationBottle.ResetCompleteBottle();
-      destinationBottle.TransferLiquid( sourceBottle, true, liquidCount );
+      Destination.ResetCompleteBottle();
+      Destination.TransferLiquid( Source, true, LiquidCount );
+    }
+
+    public void Redo()
+    {
+      Source.TransferLiquid( Destination, true, LiquidCount );
+      Destination.CheckCompleted();
     }
 
     public override string ToString()
     {
         return this.GetType().Name + "["
-               + "sourceBottle=" + sourceBottle + ","
-               + "destinationBottle=" + destinationBottle + ","
-               + "liquidCount=" + liquidCount + "]";
+               + "Source=" + Source + ","
+               + "Destination=" + Destination + ","
+               + "LiquidCount=" + LiquidCount + "]";
     }
 }
