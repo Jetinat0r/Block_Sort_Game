@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,6 +10,8 @@ public class BottleManager : MonoBehaviour
 
     //For the "restart" thing
     private GameObject[] initialBottles;
+    private Stack<Move> undoMoves = new Stack<Move>();
+    private Stack<Move> redoMoves = new Stack<Move>();
 
     private GameObject[] bottles;
     private GameObject heldBottle;
@@ -108,7 +111,12 @@ public class BottleManager : MonoBehaviour
             else
             {
                 //Debug.Log("Glug glug!");
-                heldBottle.GetComponent<Bottle>().TransferLiquid(_clickedBottle);
+                Move move = heldBottle.GetComponent<Bottle>().TransferLiquid(_clickedBottle);
+                if(move != null)
+                {
+                    undoMoves.Push(move);
+                    redoMoves.Clear();
+                }
                 _clickedBottle.GetComponent<Bottle>().CheckCompleted();
             }
         }
@@ -117,6 +125,11 @@ public class BottleManager : MonoBehaviour
             //Shake
             _clickedBottle.GetComponent<Bottle>().ShakeBottle();
         }
+    }
+
+    public void RemoveCompleteBottle()
+    {
+        numCompleted--;
     }
 
     public void CompleteBottle()
@@ -131,8 +144,11 @@ public class BottleManager : MonoBehaviour
     public void ClearHeldBottle()
     {
         //Debug.Log("Put down (" + heldBottle.GetComponent<Bottle>().PrintBottleContents() + ")");
-        StartCoroutine(heldBottle.GetComponent<Bottle>().ShiftBottle(false));
-        heldBottle = null;
+        if(heldBottle != null)
+        {
+            StartCoroutine(heldBottle.GetComponent<Bottle>().ShiftBottle(false));
+            heldBottle = null;
+        }
     }
 
     //public void SaveBottleStates()
@@ -141,14 +157,47 @@ public class BottleManager : MonoBehaviour
     //    moves.Add(bottles);
     //}
 
-    //public void Undo()
-    //{
-    //    if(moves.Count > 1)
-    //    {
-    //        DestroyBottles();
-    //        PlaceBottles(numColors, numBottles - numColors, moves[moves.Count - 1]); ;
-    //    }
-    //}
+    /*
+     * Delay the execution of the Undo() method to allow time for the
+     * held bottle to return to its un-held position.
+     */
+    public IEnumerator InvokeUndoLater( Move m, float delay )
+    {
+      yield return new WaitForSeconds( delay );
+      m.Undo();
+      redoMoves.Push(m);
+    }
+
+    public void Undo()
+    {
+        if( undoMoves.Count > 0 )
+        {
+            Move m = undoMoves.Pop();
+            ClearHeldBottle();
+            StartCoroutine( InvokeUndoLater( m, m.Source.timeToMove ) );
+        }
+    }
+
+    /*
+     * Delay the execution of the Redo() method to allow time for the
+     * held bottle to return to its un-held position.
+     */
+    public IEnumerator InvokeRedoLater( Move m, float delay )
+    {
+      yield return new WaitForSeconds( delay );
+      m.Redo();
+      undoMoves.Push(m);
+    }
+
+    public void Redo()
+    {
+        if( redoMoves.Count > 0 )
+        {
+            Move m = redoMoves.Pop();
+            ClearHeldBottle();
+            StartCoroutine( InvokeRedoLater( m, m.Source.timeToMove ) );
+        }
+    }
 
     public void SetInitialBottles()
     {
@@ -167,6 +216,8 @@ public class BottleManager : MonoBehaviour
     {
         DestroyBottles();
         ResetMoves();
+	undoMoves.Clear();
+	redoMoves.Clear();
         PlaceBottles(numColors, numEmpty, initialBottles);
     }
 
