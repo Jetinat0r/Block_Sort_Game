@@ -30,6 +30,59 @@ public class PlayerUI : MonoBehaviour
     [SerializeField]
     private GameObject finalMovesText;
 
+    public const string HEIGHT_OF_BOTTLES_PREF    = "HeightOfBottles";
+    public const int    HEIGHT_OF_BOTTLES_DEFAULT = 3;
+
+    public const string NUM_OF_COLORS_PREF    = "NumOfColors";
+    public const int    NUM_OF_COLORS_DEFAULT = 3;
+
+    public const string NUM_EMPTY_BOTTLES_PREF    = "NumEmptyBottles";
+    public const int    NUM_EMPTY_BOTTLES_DEFAULT = 1;
+
+    public void LoadUserPrefs()
+    {
+        heightInput.text =
+            PlayerPrefs.GetInt(HEIGHT_OF_BOTTLES_PREF,
+                               HEIGHT_OF_BOTTLES_DEFAULT).ToString();
+        numColorsInput.text =
+            PlayerPrefs.GetInt(NUM_OF_COLORS_PREF,
+                               NUM_OF_COLORS_DEFAULT).ToString();
+        numEmptyInput.text =
+            PlayerPrefs.GetInt(NUM_EMPTY_BOTTLES_PREF,
+                               NUM_EMPTY_BOTTLES_DEFAULT).ToString();
+    }
+
+    public void StoreUserPrefs()
+    {
+        int _height = HEIGHT_OF_BOTTLES_DEFAULT;
+        int _numColors = NUM_OF_COLORS_DEFAULT;
+        int _numEmpty = NUM_EMPTY_BOTTLES_DEFAULT;
+
+        if(heightInput.text != "")
+        {
+            _height = System.Convert.ToInt16(heightInput.text);
+        }
+        PlayerPrefs.SetInt(HEIGHT_OF_BOTTLES_PREF, _height);
+
+        if(numColorsInput.text != "")
+        {
+            _numColors = System.Convert.ToInt16(numColorsInput.text);
+        }
+        PlayerPrefs.SetInt(NUM_OF_COLORS_PREF, _numColors);
+
+        if(numEmptyInput.text != "")
+        {
+            _numEmpty = System.Convert.ToInt16(numEmptyInput.text);
+        }
+        PlayerPrefs.SetInt(NUM_EMPTY_BOTTLES_PREF, _numEmpty);
+    }
+
+    public void Awake()
+    {
+        // Called once at startup to restore the user's preferences.
+        LoadUserPrefs();
+    }
+
     public void Restart()
     {
         FindObjectOfType<BottleManager>().Restart();
@@ -65,41 +118,28 @@ public class PlayerUI : MonoBehaviour
         numMovesText.SetActive(true);
         settingsScreen.SetActive(false);
         backButton.SetActive(false);
+
+        // Capture the user's preferences when the dialog is withdrawn.
+	StoreUserPrefs();
     }
 
     public void GenerateNewBottles()
     {
-        int _height;
-        int _numColors;
-        int _numEmpty;
+        int _height = HEIGHT_OF_BOTTLES_DEFAULT;
+        int _numColors = NUM_OF_COLORS_DEFAULT;
+        int _numEmpty = NUM_EMPTY_BOTTLES_DEFAULT;
 
-        //if (heightInput.text == "" || numColorsInput.text == "" || numEmptyInput.text == "")
-        //{
-        //    return;
-        //}
-        if(heightInput.text == "")
-        {
-            _height = 3;
-        }
-        else
+        if(heightInput.text != "")
         {
             _height = System.Convert.ToInt16(heightInput.text);
         }
 
-        if(numColorsInput.text == "")
-        {
-            _numColors = 3;
-        }
-        else
+        if(numColorsInput.text != "")
         {
             _numColors = System.Convert.ToInt16(numColorsInput.text);
         }
 
-        if (numEmptyInput.text == "")
-        {
-            _numEmpty = 1;
-        }
-        else
+        if (numEmptyInput.text != "")
         {
             _numEmpty = System.Convert.ToInt16(numEmptyInput.text);
         }

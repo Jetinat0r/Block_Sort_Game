@@ -37,9 +37,15 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        CreateRandomBottles(DEBUGHEIGHT, DEBUGCOLORS, DEBUGEMPTY);
-    }
+        int _height = PlayerPrefs.GetInt(PlayerUI.HEIGHT_OF_BOTTLES_PREF,
+                                         PlayerUI.HEIGHT_OF_BOTTLES_DEFAULT);
+        int _numColors = PlayerPrefs.GetInt(PlayerUI.NUM_OF_COLORS_PREF,
+                                            PlayerUI.NUM_OF_COLORS_DEFAULT);
+        int _numEmpty = PlayerPrefs.GetInt(PlayerUI.NUM_EMPTY_BOTTLES_PREF,
+                                           PlayerUI.NUM_EMPTY_BOTTLES_DEFAULT);
 
+        CreateRandomBottles(_height, _numColors, _numEmpty);
+    }
 
     public void DEBUGSTART()
     {
